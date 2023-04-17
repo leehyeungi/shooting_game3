@@ -12,7 +12,7 @@ from animation import Animation
 pygame.init()
 
 # 게임 화면 설정
-image_list = ['background1.png','backgrounds.png']
+image_list = ['background1.png','backgrounds1.png']
 size = (1000, 986)
 screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 pygame.display.set_caption("슈팅 게임")
@@ -20,7 +20,8 @@ pygame.display.set_caption("슈팅 게임")
 #배경화면 클래스
 class Background(Sprite):
     def __init__(self):
-        self.sprite_image = image_list[0]
+        self.i = 0
+        self.sprite_image = image_list[self.i]
         self.image = pygame.image.load(self.sprite_image).convert()
         self.rect = self.image.get_rect()
         self.rect.y = 0
@@ -35,8 +36,11 @@ class Background(Sprite):
             self.rect.y = 0
             self.count += 1
             
-        if self.count == 5:
-            self.sprite_image = image_list[1]
+        if self.count == 2:
+            self.i = self.i + 1
+            self.sprite_image = image_list[self.i]
+            self.image = pygame.image.load(self.sprite_image).convert()
+            self.rect = self.image.get_rect()
             self.count = 0
             
 # 플레이어 클래스
@@ -133,18 +137,22 @@ class Boss(Animation):
             
 
 #아이템 클래스 (아이템 이미지 찾기)
-class item(Animation):
+class Item(Animation):
     def __init__(self, x, y):
-        self.sprite_image = ''
-        self.sprite_width = 
-        self.sprite_height =
-        self.sprite_columns =
-        self.fps =
+        self.sprite_image = 'randombox1.png'
+        self.sprite_width = 84
+        self.sprite_height = 67
+        self.sprite_columns = 24
+        self.fps = 24
         self.speed = random.randint(1, 3) #스피드 랜덤
         self.init_animation()
         self.rect.x = x
         self.rect.y = y
-
+        
+    #def shield(self):   
+    #def plus(self):  
+    #def (self):
+        
     def update(self):
         self.image.set_colorkey(Color(255, 255, 255))
 
@@ -152,7 +160,7 @@ class item(Animation):
         if self.rect.top > 1000:
             self.rect.y = 0
         
-    
+        
 #이미지 그룹
 background = Background()
 background_group = pygame.sprite.Group()
@@ -195,6 +203,17 @@ for k in range(10):
     enemy = Enemy(enemys_x[k], enemys_y[k])
     enemy_group.add(enemy)
 
+#아이템의 좌표 생성
+items_x = []
+items_y = -200
+
+for j in range(10):
+    items_x.append(random.randint(0, 1000))
+
+item_group = pygame.sprite.Group()
+
+itm = 0
+
 # 게임 루프
 running = True
 clock = pygame.time.Clock()
@@ -212,18 +231,23 @@ while running:
                 if bullets == 1000:
                     running = False
 
-
     #스코어 점수가 300이 되면 보스 출현
     if player.score == 300:
         boss.rect.x = 250
         boss.rect.y = 100
         boss_group.add(boss)
 
+    if player.score == 100:
+        items = Item(items_x[itm], items_y)
+        item_group.add(items)
+        itm += 1
+
     # 게임 상태 업데이트
     player_group.update()
     bullet_group.update()
     enemy_group.update()
     boss_group.update()
+    item_group.update()
 
     # 충돌 처리
     if enemy.alive():
@@ -234,14 +258,18 @@ while running:
             t.rect.y = -200
             enemy_group.add(t)
 
+
     if boss.alive():
         hitss = pygame.sprite.groupcollide(boss_group, bullet_group, False, True)
         if hitss:
             boss_count += 1
             if boss_count == 30:
-                boss_group
                 boss_count = 0
 
+    if player.alive():
+        hit = pygame.sprite.groupcollide(item_group, player_group, True, False)
+        if hit:
+            a = 0
                 
     if player.alive():
         hitse = pygame.sprite.groupcollide(player_group, enemy_group, True, True)
@@ -255,6 +283,7 @@ while running:
     bullet_group.draw(screen)
     enemy_group.draw(screen)
     boss_group.draw(screen)
+    item_group.draw(screen)
 
     # 점수 출력
     font = pygame.font.Font(None, 30)
